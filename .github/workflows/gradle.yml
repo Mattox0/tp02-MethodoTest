@@ -30,7 +30,7 @@ jobs:
 
       # Étape 3 : Exécuter les tests avec JaCoCo
       - name: Run Tests with JaCoCo
-        run: ./gradlew test jacocoTestReport
+        run: ./gradlew test
 
       # Étape 4 : Publier les résultats des tests
       - name: Publish Test Results
@@ -39,9 +39,15 @@ jobs:
         with:
           files: build/test-results/**/*.xml
 
-      # Étape 5 : Publier le rapport de couverture JaCoCo (HTML et XML)
-      - name: Upload JaCoCo Coverage Report
-        uses: actions/upload-artifact@v3
+      - name: JaCoCo Code Coverage Report
+        id: jacoco_reporter
+        uses: PavanMudigonda/jacoco-reporter@v5.0
         with:
-          name: jacoco-coverage-report
-          path: build/reports/jacoco/test/html
+          coverage_results_path: jacoco-report/test.xml
+          coverage_report_name: Coverage
+          coverage_report_title: JaCoCo
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          skip_check_run: false
+          minimum_coverage: 80
+          fail_below_threshold: false
+          publish_only_summary: false
