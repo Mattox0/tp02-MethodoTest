@@ -42,8 +42,11 @@ class BookCaseTest : FunSpec({
                 Book(author2, title2)
             )
             every { bookPort.listBooks() } returns books
+
             val sortedBooks = bookCase.listBooks()
-            sortedBooks shouldBeSortedBy { it.title }
+            val expectedSortedBooks = books.sortedBy { it.title }
+
+            sortedBooks shouldBe expectedSortedBooks
         }
     }
 

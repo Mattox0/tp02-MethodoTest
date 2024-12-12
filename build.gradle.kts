@@ -1,9 +1,12 @@
+import info.solidsoft.gradle.pitest.PitestPluginExtension
+
 plugins {
 	kotlin("jvm") version "1.9.25"
 	kotlin("plugin.spring") version "1.9.25"
 	id("org.springframework.boot") version "3.3.6"
 	id("io.spring.dependency-management") version "1.1.6"
-	jacoco // Ajout du plugin JaCoCo
+	jacoco
+	id("info.solidsoft.pitest") version "1.15.0"
 }
 
 group = "methodo.test"
@@ -29,6 +32,9 @@ dependencies {
 	testImplementation("io.kotest:kotest-assertions-core:5.9.1")
 	testImplementation("io.kotest:kotest-property:5.9.1")
 	testImplementation("io.mockk:mockk:1.13.7")
+	testImplementation("info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.15.0")
+	testImplementation("org.pitest:pitest-junit5-plugin:1.2.1")
+	testImplementation("io.kotest.extensions:kotest-extensions-pitest:1.2.0")
 }
 
 kotlin {
@@ -39,6 +45,17 @@ kotlin {
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+}
+
+pitest {
+	targetClasses.set(setOf("methodo.test.*"))
+	targetTests.set(setOf("methodo.test.*"))
+	threads.set(4)
+	verbose.set(true)
+}
+
+configure<PitestPluginExtension> {
+	targetClasses.set(listOf("methodo.test.*"))
 }
 
 jacoco {
@@ -57,3 +74,4 @@ tasks.jacocoTestReport {
 		html.required.set(true)
 	}
 }
+

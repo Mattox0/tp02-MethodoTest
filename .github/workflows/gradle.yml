@@ -54,3 +54,16 @@ jobs:
           echo "| :heavy_check_mark: Number of Lines Covered | ${{ steps.jacoco_reporter.outputs.covered_lines }} |" >> $GITHUB_STEP_SUMMARY
           echo "| :x: Number of Lines Missed | ${{ steps.jacoco_reporter.outputs.missed_lines }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Total Number of Lines | ${{ steps.jacoco_reporter.outputs.total_lines }} |" >> $GITHUB_STEP_SUMMARY
+
+      - name: Run Pitest Mutation Testing
+        run: ./gradlew pitest
+
+      - name: Publish Mutation Testing Results
+        if: always()
+        run: |
+          echo "Mutation Testing Results Summary" >> $GITHUB_STEP_SUMMARY
+          echo "| Outcome | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "| --- | --- |" >> $GITHUB_STEP_SUMMARY
+          echo "| Mutations Killed | ${{ steps.pitest.outputs.killed }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Mutations Survived | ${{ steps.pitest.outputs.survived }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Mutation Coverage % | ${{ steps.pitest.outputs.coverage_percentage }} |" >> $GITHUB_STEP_SUMMARY
