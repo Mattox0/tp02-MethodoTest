@@ -8,30 +8,34 @@ on:
     branches:
       - main
 
+permissions:
+  checks: write
+  pull-requests: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
+      # Étape 1 : Récupérer le code source
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # Étape 2 : Configurer Java
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Gradle Build Action
-        uses: gradle/actions/setup-gradle@v3
-        with:
-          arguments: build
+      # Étape 3 : Exécuter les tests avec Gradle
+      - name: Run Gradle Tests
+        run: ./gradlew test
 
+      # Étape 4 : Publier les résultats des tests
       - name: Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action/linux@v2
-        if: always()
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always() # Toujours exécuter cette étape, même si les tests échouent
         with:
-          files: |
-            test-results/**/*.xml
-            test-results/**/*.trx
-            test-results/**/*.json
+          files: build/test-results/**/*.xml # Chemin vers les fichiers XML générés par Gradle
+          check_name: Gradle Unit Tests
