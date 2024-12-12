@@ -17,37 +17,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Étape 1 : Checkout du code
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Étape 2 : Configurer Java
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
           java-version: '21'
           distribution: 'temurin'
 
-      # Étape 3 : Exécuter les tests avec JaCoCo
-      - name: Run Tests with JaCoCo
-        run: ./gradlew test
+      - name: Run Tests
+        run: ./gradlew test jacocoTestReport
 
-      # Étape 4 : Publier les résultats des tests
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
         if: always()
         with:
           files: build/test-results/**/*.xml
 
-      - name: JaCoCo Code Coverage Report
-        id: jacoco_reporter
-        uses: PavanMudigonda/jacoco-reporter@v5.0
-        with:
-          coverage_results_path: jacoco-report/test.xml
-          coverage_report_name: Coverage
-          coverage_report_title: JaCoCo
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          skip_check_run: false
-          minimum_coverage: 80
-          fail_below_threshold: false
-          publish_only_summary: false
+      - name: Display JaCoCo Coverage Report in Logs
+        run: |
+          echo "Displaying JaCoCo Coverage Report:"
+          cat build/reports/jacoco/test/jacocoTestReport.xml
