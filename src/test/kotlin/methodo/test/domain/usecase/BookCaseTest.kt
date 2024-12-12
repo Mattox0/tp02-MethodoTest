@@ -65,16 +65,22 @@ class BookCaseTest : FunSpec({
                 Book(author2, title2)
             )
             every { bookPort.listBooks() } returns books
+
             val sortedBooks = bookCase.listBooks()
+
             sortedBooks shouldBeSortedBy { it.title }
         }
     }
 
     test("listBooks should return a non-empty list if books are added") {
         checkAll(Arb.string(), Arb.string(), Arb.string(), Arb.string()) { author1, title1, author2, title2 ->
+            every { bookPort.listBooks() } returns listOf()
+
             val book1 = Book(author1, title1)
             val book2 = Book(author2, title2)
 
+            every { bookPort.addBook(book1) } returns Unit
+            every { bookPort.addBook(book2) } returns Unit
             every { bookPort.listBooks() } returns listOf(book1, book2)
 
             bookCase.createBook(author1, title1)

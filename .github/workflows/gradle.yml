@@ -57,13 +57,3 @@ jobs:
 
       - name: Run Pitest Mutation Testing
         run: ./gradlew pitest
-
-      - name: Publish Mutation Testing Results
-        if: always()
-        run: |
-          echo "Mutation Testing Results Summary" >> $GITHUB_STEP_SUMMARY
-          echo "| Outcome | Value |" >> $GITHUB_STEP_SUMMARY
-          echo "| --- | --- |" >> $GITHUB_STEP_SUMMARY
-          echo "| Mutations Killed | ${{ steps.pitest.outputs.killed }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Mutations Survived | ${{ steps.pitest.outputs.survived }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Mutation Coverage % | ${{ steps.pitest.outputs.coverage_percentage }} |" >> $GITHUB_STEP_SUMMARY
