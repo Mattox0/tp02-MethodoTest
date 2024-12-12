@@ -34,7 +34,7 @@ class BookCaseTest : FunSpec({
 
     test("listBooks should return sorted books from BookPort") {
         val books = listOf(
-            Book("Author B", "Title B"),
+            Book("Author B", "Title C"),
             Book("Author A", "Title A")
         )
         every { bookPort.listBooks() } returns books
