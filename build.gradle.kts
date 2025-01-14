@@ -42,6 +42,15 @@ testing {
                 runtimeClasspath += sourceSets.main.get().output
             }
         }
+        val testComponent by registering(JvmTestSuite::class) {
+            sources {
+                kotlin {
+                    setSrcDirs(listOf("src/testComponent/kotlin"))
+                }
+                compileClasspath += sourceSets.main.get().output
+                runtimeClasspath += sourceSets.main.get().output
+            }
+        }
     }
 }
 
@@ -50,6 +59,10 @@ repositories {
 }
 
 val testIntegrationImplementation: Configuration by configurations.getting {
+    extendsFrom(configurations.implementation.get())
+}
+
+val testComponentImplementation: Configuration by configurations.getting {
     extendsFrom(configurations.implementation.get())
 }
 
@@ -84,6 +97,17 @@ dependencies {
     testIntegrationImplementation("io.kotest.extensions:kotest-extensions-testcontainers:2.0.2")
     testIntegrationImplementation("io.kotest.extensions:kotest-extensions-pitest:1.2.0")
 
+    testComponentImplementation("io.cucumber:cucumber-java:7.14.0")
+    testComponentImplementation("io.cucumber:cucumber-spring:7.14.0")
+    testComponentImplementation("io.cucumber:cucumber-junit:7.14.0")
+    testComponentImplementation("io.cucumber:cucumber-junit-platform-engine:7.14.0")
+    testComponentImplementation("io.rest-assured:rest-assured:5.3.2")
+    testComponentImplementation("org.junit.platform:junit-platform-suite:1.10.0")
+    testComponentImplementation("org.testcontainers:postgresql:1.19.1")
+    testComponentImplementation("io.kotest:kotest-assertions-core:5.9.1")
+    testComponentImplementation("org.springframework.boot:spring-boot-starter-test") {
+        exclude(module = "mockito-core")
+    }
     implementation("org.jetbrains.kotlin:kotlin-reflect:2.0.21")
 }
 
