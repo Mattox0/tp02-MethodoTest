@@ -22,12 +22,9 @@ class BookControllerIT(
     extension(SpringExtension)
 
     test("rest route get books") {
-        // GIVEN
         every { bookUseCase.getAllBooks() } returns listOf(Book("A", "B"))
 
-        // WHEN
         mockMvc.get("/books")
-            //THEN
             .andExpect {
                 status { isOk() }
                 content { content { APPLICATION_JSON } }
@@ -90,5 +87,70 @@ class BookControllerIT(
         }
 
         verify(exactly = 0) { bookUseCase.addBook(any()) }
+    }
+
+    test("get book by id should return book when found") {
+        val book = Book("Les misérables", "Victor Hugo")
+        every { bookUseCase.getBook(1) } returns book
+
+        mockMvc.get("/books/1")
+            .andExpect {
+                status { isOk() }
+                content { content { APPLICATION_JSON } }
+                content {
+                    json(
+                        """
+                        {
+                          "name": "Les misérables",
+                          "author": "Victor Hugo"
+                        }
+                        """.trimIndent()
+                    )
+                }
+            }
+    }
+
+    test("get book by id should return 404 when not found") {
+        every { bookUseCase.getBook(1) } returns null
+
+        mockMvc.get("/books/1")
+            .andExpect {
+                status { isNotFound() }
+            }
+    }
+
+    test("reserve book should return 200 when successful") {
+        justRun { bookUseCase.reserveBook(1) }
+
+        mockMvc.post("/books/reserved/1") {
+            contentType = APPLICATION_JSON
+            accept = APPLICATION_JSON
+        }.andExpect {
+            status { isOk() }
+        }
+
+        verify(exactly = 1) { bookUseCase.reserveBook(1) }
+    }
+
+    test("reserve book should return 404 when book not found") {
+        every { bookUseCase.reserveBook(1) } throws IllegalArgumentException("Book not found")
+
+        mockMvc.post("/books/reserved/1") {
+            contentType = APPLICATION_JSON
+            accept = APPLICATION_JSON
+        }.andExpect {
+            status { isNotFound() }
+        }
+    }
+
+    test("reserve book should return 409 when book already reserved") {
+        every { bookUseCase.reserveBook(1) } throws IllegalStateException("Book already reserved")
+
+        mockMvc.post("/books/reserved/1") {
+            contentType = APPLICATION_JSON
+            accept = APPLICATION_JSON
+        }.andExpect {
+            status { isConflict() }
+        }
     }
 })

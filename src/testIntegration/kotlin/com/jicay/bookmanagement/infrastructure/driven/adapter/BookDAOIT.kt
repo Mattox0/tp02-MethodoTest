@@ -4,10 +4,12 @@ import com.jicay.bookmanagement.domain.model.Book
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.kotest.assertions.assertSoftly
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.extensions.spring.SpringExtension
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -32,7 +34,6 @@ class BookDAOIT(
         }
 
         test("get all books from db") {
-            // GIVEN
             performQuery(
                 // language=sql
                 """
@@ -44,21 +45,16 @@ class BookDAOIT(
             """.trimIndent()
             )
 
-            // WHEN
             val res = bookDAO.getAllBooks()
 
-            // THEN
             res.shouldContainExactlyInAnyOrder(
                 Book("Hamlet", "Shakespeare", false), Book("Les fleurs du mal", "Beaudelaire", false), Book("Harry Potter", "Rowling", false)
             )
         }
 
         test("create book in db") {
-            // GIVEN
-            // WHEN
             bookDAO.createBook(Book("Les misérables", "Victor Hugo"))
 
-            // THEN
             val res = performQuery(
                 // language=sql
                 "SELECT * from book"
@@ -72,10 +68,115 @@ class BookDAOIT(
             }
         }
 
+        test("get book by id should return book when it exists") {
+            performQuery(
+                // language=sql
+            """
+               insert into book (id, title, author, reserved)
+               values (1, 'Les misérables', 'Victor Hugo', false)
+            """.trimIndent()
+            )
+
+            val res = bookDAO.getBook(1)
+
+            res.shouldNotBeNull()
+            assertSoftly(res) {
+                name shouldBe "Les misérables"
+                author shouldBe "Victor Hugo"
+                reserved shouldBe false
+            }
+        }
+
+        test("get book by id should return null when book doesn't exist") {
+            val res = bookDAO.getBook(1)
+
+            res.shouldBeNull()
+        }
+
+        test("reserve book should update reserved status") {
+            performQuery(
+                // language=sql
+                """
+                   insert into book (id, title, author, reserved)
+                   values (1, 'Les misérables', 'Victor Hugo', false)
+                """.trimIndent()
+            )
+
+            bookDAO.reserveBook(1)
+
+            val res = performQuery(
+                // language=sql
+                "SELECT * from book WHERE id = 1"
+            )
+
+            res shouldHaveSize 1
+            assertSoftly(res.first()) {
+                this["reserved"].shouldBe(true)
+            }
+        }
+
+        test("reserving an already reserved book should not alter the record") {
+            performQuery(
+                // language=sql
+                """
+        INSERT INTO book (id, title, author, reserved)
+        VALUES (1, 'Les Misérables', 'Victor Hugo', true)
+        """.trimIndent()
+            )
+
+            bookDAO.reserveBook(1)
+
+            val res = performQuery("SELECT * FROM book WHERE id = 1")
+
+            res shouldHaveSize 1
+            assertSoftly(res.first()) {
+                this["reserved"].shouldBe(true) // Réservé reste vrai
+            }
+        }
+
+        test("reserving a non-existent book should not create new records") {
+            bookDAO.reserveBook(999)
+
+            val res = performQuery(
+                // language=sql
+                "SELECT * FROM book WHERE id = 999"
+            )
+
+            res shouldHaveSize 0
+        }
+
+        test("multiple concurrent reservations on the same book should be handled correctly") {
+            performQuery(
+                // language=sql
+                """
+                    INSERT INTO book (id, title, author, reserved)
+                    VALUES (1, 'Les Misérables', 'Victor Hugo', false)
+                """.trimIndent()
+            )
+
+            val threads = (1..10).map {
+                Thread {
+                    bookDAO.reserveBook(1)
+                }
+            }
+            threads.forEach { it.start() }
+            threads.forEach { it.join() }
+
+            val res = performQuery(
+                // language=sql
+                "SELECT reserved FROM book WHERE id = 1"
+            )
+
+            res shouldHaveSize 1
+            res.first()["reserved"] shouldBe true
+        }
+
         afterSpec {
             container.stop()
         }
     }
+
+
 
     companion object {
         private val container = PostgreSQLContainer<Nothing>("postgres:13-alpine")

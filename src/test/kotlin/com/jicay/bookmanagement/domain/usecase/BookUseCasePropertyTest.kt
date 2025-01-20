@@ -9,6 +9,8 @@ import io.kotest.property.arbitrary.int
 import io.kotest.property.arbitrary.next
 import io.kotest.property.arbitrary.stringPattern
 import io.kotest.property.checkAll
+import org.springframework.http.HttpStatus
+import org.springframework.web.server.ResponseStatusException
 
 class InMemoryBookPort : BookPort {
     private val books = mutableListOf<Book>()
@@ -17,6 +19,18 @@ class InMemoryBookPort : BookPort {
 
     override fun createBook(book: Book) {
         books.add(book)
+    }
+
+    override fun getBook(bookId: Int): Book? {
+        return books.getOrNull(bookId)
+    }
+
+    override fun reserveBook(bookId: Int) {
+        val book = books.getOrNull(bookId) ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Book not found")
+        if (book.reserved) {
+            throw IllegalStateException("Book is already reserved")
+        }
+        books[bookId] = book.copy(reserved = true)
     }
 
     fun clear() {
