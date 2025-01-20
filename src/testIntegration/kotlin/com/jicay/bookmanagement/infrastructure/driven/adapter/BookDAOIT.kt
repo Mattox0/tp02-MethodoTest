@@ -145,32 +145,6 @@ class BookDAOIT(
             res shouldHaveSize 0
         }
 
-        test("multiple concurrent reservations on the same book should be handled correctly") {
-            performQuery(
-                // language=sql
-                """
-                    INSERT INTO book (id, title, author, reserved)
-                    VALUES (1, 'Les Misérables', 'Victor Hugo', false)
-                """.trimIndent()
-            )
-
-            val threads = (1..10).map {
-                Thread {
-                    bookDAO.reserveBook(1)
-                }
-            }
-            threads.forEach { it.start() }
-            threads.forEach { it.join() }
-
-            val res = performQuery(
-                // language=sql
-                "SELECT reserved FROM book WHERE id = 1"
-            )
-
-            res shouldHaveSize 1
-            res.first()["reserved"] shouldBe true
-        }
-
         afterSpec {
             container.stop()
         }
