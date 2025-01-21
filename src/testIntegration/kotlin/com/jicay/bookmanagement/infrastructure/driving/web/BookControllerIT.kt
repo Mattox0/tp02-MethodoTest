@@ -22,7 +22,7 @@ class BookControllerIT(
     extension(SpringExtension)
 
     test("rest route get books") {
-        every { bookUseCase.getAllBooks() } returns listOf(Book("A", "B"))
+        every { bookUseCase.getAllBooks() } returns listOf(Book("The Hobbit", "J.R.R. Tolkien"))
 
         mockMvc.get("/books")
             .andExpect {
@@ -34,8 +34,8 @@ class BookControllerIT(
                         """
                         [
                           {
-                            "name": "A",
-                            "author": "B"
+                            "name": "The Hobbit",
+                            "author": "J.R.R. Tolkien"
                           }
                         ]
                         """.trimIndent()
@@ -51,8 +51,8 @@ class BookControllerIT(
             // language=json
             content = """
                 {
-                  "name": "Les misérables",
-                  "author": "Victor Hugo"
+                  "name": "Dune",
+                  "author": "Frank Herbert"
                 }
             """.trimIndent()
             contentType = APPLICATION_JSON
@@ -62,8 +62,8 @@ class BookControllerIT(
         }
 
         val expected = Book(
-            name = "Les misérables",
-            author = "Victor Hugo"
+            name = "Dune",
+            author = "Frank Herbert"
         )
 
         verify(exactly = 1) { bookUseCase.addBook(expected) }
@@ -76,8 +76,8 @@ class BookControllerIT(
             // language=json
             content = """
                 {
-                  "title": "Les misérables",
-                  "author": "Victor Hugo"
+                  "title": "Foundation",
+                  "author": "Isaac Asimov"
                 }
             """.trimIndent()
             contentType = APPLICATION_JSON
@@ -90,7 +90,7 @@ class BookControllerIT(
     }
 
     test("get book by id should return book when found") {
-        val book = Book("Les misérables", "Victor Hugo")
+        val book = Book("Neuromancer", "William Gibson")
         every { bookUseCase.getBook(1) } returns book
 
         mockMvc.get("/books/1")
@@ -101,8 +101,8 @@ class BookControllerIT(
                     json(
                         """
                         {
-                          "name": "Les misérables",
-                          "author": "Victor Hugo"
+                          "name": "Neuromancer",
+                          "author": "William Gibson"
                         }
                         """.trimIndent()
                     )

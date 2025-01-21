@@ -39,21 +39,23 @@ class BookDAOIT(
                 """
                insert into book (title, author, reserved)
                values 
-                   ('Hamlet', 'Shakespeare', false),
-                   ('Les fleurs du mal', 'Beaudelaire', false),
-                   ('Harry Potter', 'Rowling', false);
+                   ('The Great Gatsby', 'F. Scott Fitzgerald', false),
+                   ('The Old Man and the Sea', 'Ernest Hemingway', false),
+                   ('The Sun Also Rises', 'Ernest Hemingway', false);
             """.trimIndent()
             )
 
             val res = bookDAO.getAllBooks()
 
             res.shouldContainExactlyInAnyOrder(
-                Book("Hamlet", "Shakespeare", false), Book("Les fleurs du mal", "Beaudelaire", false), Book("Harry Potter", "Rowling", false)
+                Book("The Great Gatsby", "F. Scott Fitzgerald", false),
+                Book("The Old Man and the Sea", "Ernest Hemingway", false),
+                Book("The Sun Also Rises", "Ernest Hemingway", false)
             )
         }
 
         test("create book in db") {
-            bookDAO.createBook(Book("Les misérables", "Victor Hugo"))
+            bookDAO.createBook(Book("The Grapes of Wrath", "John Steinbeck"))
 
             val res = performQuery(
                 // language=sql
@@ -63,17 +65,17 @@ class BookDAOIT(
             res shouldHaveSize 1
             assertSoftly(res.first()) {
                 this["id"].shouldNotBeNull().shouldBeInstanceOf<Int>()
-                this["title"].shouldBe("Les misérables")
-                this["author"].shouldBe("Victor Hugo")
+                this["title"].shouldBe("The Grapes of Wrath")
+                this["author"].shouldBe("John Steinbeck")
             }
         }
 
         test("get book by id should return book when it exists") {
             performQuery(
                 // language=sql
-            """
+                """
                insert into book (id, title, author, reserved)
-               values (1, 'Les misérables', 'Victor Hugo', false)
+               values (1, 'Of Mice and Men', 'John Steinbeck', false)
             """.trimIndent()
             )
 
@@ -81,8 +83,8 @@ class BookDAOIT(
 
             res.shouldNotBeNull()
             assertSoftly(res) {
-                name shouldBe "Les misérables"
-                author shouldBe "Victor Hugo"
+                name shouldBe "Of Mice and Men"
+                author shouldBe "John Steinbeck"
                 reserved shouldBe false
             }
         }
@@ -98,7 +100,7 @@ class BookDAOIT(
                 // language=sql
                 """
                    insert into book (id, title, author, reserved)
-                   values (1, 'Les misérables', 'Victor Hugo', false)
+                   values (1, 'To Kill a Mockingbird', 'Harper Lee', false)
                 """.trimIndent()
             )
 
@@ -120,7 +122,7 @@ class BookDAOIT(
                 // language=sql
                 """
         INSERT INTO book (id, title, author, reserved)
-        VALUES (1, 'Les Misérables', 'Victor Hugo', true)
+        VALUES (1, 'The Catcher in the Rye', 'J.D. Salinger', true)
         """.trimIndent()
             )
 
@@ -130,7 +132,7 @@ class BookDAOIT(
 
             res shouldHaveSize 1
             assertSoftly(res.first()) {
-                this["reserved"].shouldBe(true) // Réservé reste vrai
+                this["reserved"].shouldBe(true)
             }
         }
 
@@ -149,8 +151,6 @@ class BookDAOIT(
             container.stop()
         }
     }
-
-
 
     companion object {
         private val container = PostgreSQLContainer<Nothing>("postgres:13-alpine")

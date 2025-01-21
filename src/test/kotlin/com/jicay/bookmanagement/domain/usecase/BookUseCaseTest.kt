@@ -19,22 +19,22 @@ class BookUseCaseTest : FunSpec({
 
     test("get all books should returns all books sorted by name") {
         every { bookPort.getAllBooks() } returns listOf(
-            Book("Les Misérables", "Victor Hugo"),
-            Book("Hamlet", "William Shakespeare")
+            Book("1984", "George Orwell"),
+            Book("Don Quixote", "Miguel de Cervantes")
         )
 
         val res = bookUseCase.getAllBooks()
 
         res.shouldContainExactly(
-            Book("Hamlet", "William Shakespeare"),
-            Book("Les Misérables", "Victor Hugo")
+            Book("1984", "George Orwell"),
+            Book("Don Quixote", "Miguel de Cervantes")
         )
     }
 
     test("add book") {
         justRun { bookPort.createBook(any()) }
 
-        val book = Book("Les Misérables", "Victor Hugo")
+        val book = Book("The Lord of the Rings", "J.R.R. Tolkien")
 
         bookUseCase.addBook(book)
 
@@ -59,7 +59,7 @@ class BookUseCaseTest : FunSpec({
     }
 
     test("reserve book should succeed when book exists and is not reserved") {
-        val book = Book("Les Misérables", "Victor Hugo", reserved = false)
+        val book = Book("The Great Gatsby", "F. Scott Fitzgerald", reserved = false)
         every { bookPort.getBook(1) } returns book
         justRun { bookPort.reserveBook(1) }
 
@@ -69,7 +69,7 @@ class BookUseCaseTest : FunSpec({
     }
 
     test("reserve book should throw IllegalStateException when book is already reserved") {
-        val book = Book("Les Misérables", "Victor Hugo", reserved = true)
+        val book = Book("To Kill a Mockingbird", "Harper Lee", reserved = true)
         every { bookPort.getBook(1) } returns book
 
         val exception = shouldThrow<IllegalStateException> {
@@ -89,7 +89,7 @@ class BookUseCaseTest : FunSpec({
     }
 
     test("get book should return reserved status when book is reserved") {
-        val book = Book("Les Misérables", "Victor Hugo", reserved = true)
+        val book = Book("One Hundred Years of Solitude", "Gabriel García Márquez", reserved = true)
         every { bookPort.getBook(1) } returns book
 
         val res = bookUseCase.getBook(1)
